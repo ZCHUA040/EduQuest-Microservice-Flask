@@ -1,0 +1,5 @@
+python-dotenv==1.0.1
+Flask==3.0.3
+azure-storage-blob==12.21.0
+azure-search-documents==11.5.1
+openai==1.37.2
