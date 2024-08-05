@@ -4,7 +4,7 @@ from azure_blob import AzureBlob
 from dotenv import load_dotenv
 load_dotenv()
 from llm import LLM
-from langchain_core.messages import HumanMessage, SystemMessage
+# from langchain_core.messages import HumanMessage, SystemMessage
 
 app = Flask(__name__)
 
