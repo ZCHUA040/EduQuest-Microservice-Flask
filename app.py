@@ -1,129 +1,72 @@
 import os
-import requests
-from openai import AzureOpenAI
 from flask import Flask, request, jsonify
-from azure.storage.blob import BlobServiceClient
-from azure.core.credentials import AzureKeyCredential
-from azure.search.documents import SearchClient
-from azure.search.documents.indexes import SearchIndexClient
-from azure.search.documents.indexes.models import *
+from azure_blob import AzureBlob
+from dotenv import load_dotenv
+load_dotenv()
+from llm import LLM
 
 app = Flask(__name__)
 
-# Load the .env file
-from dotenv import load_dotenv
-load_dotenv()
 
-# Initialize OpenAI
-openai_client = AzureOpenAI(
-    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-    api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT")
-)
-
-deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME")
-
-# Initialize Azure Blob Service Client
-blob_service_client = BlobServiceClient.from_connection_string(os.getenv("AZURE_STORAGE_CONNECTION_STRING"))
-
-# Initialize Azure Cognitive Search Clients
-search_service_endpoint = os.getenv("AZURE_SEARCH_SERVICE_ENDPOINT")
-search_service_key = os.getenv("AZURE_SEARCH_SERVICE_KEY")
-index_name = os.getenv("AZURE_SEARCH_INDEX_NAME")
-
-index_client = SearchIndexClient(
-    endpoint=search_service_endpoint,
-    credential=AzureKeyCredential(search_service_key)
-)
-search_client = SearchClient(
-    endpoint=search_service_endpoint,
-    index_name=index_name,
-    credential=AzureKeyCredential(search_service_key)
-)
-
-# response = openai_client.chat.completions.create(
-#     model=deployment_name, # model = "deployment_name".
-#     messages=[
-#         {"role": "system", "content": "You are a helpful assistant."},
-#         {"role": "user", "content": "Does Azure OpenAI support customer managed keys?"},
-#         {"role": "assistant", "content": "Yes, customer managed keys are supported by Azure OpenAI."},
-#         {"role": "user", "content": "Do other Azure AI services support this too?"}
-#     ]
-# )
-#
-# print(response.choices[0].message.content)
-
-
-@app.route('/create_index', methods=['POST'])
-def create_index():
-    index_schema = SearchIndex(
-        name=index_name,
-        fields=[
-            SimpleField(name="id", type=SearchFieldDataType.String, key=True),
-            SimpleField(name="student_id", type=SearchFieldDataType.String, filterable=True),
-            SearchableField(name="content", type=SearchFieldDataType.String),
-            SimpleField(name="content_vector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single)),
-        ],
-        vectorizer=Vectorizer(
-            type="TextEmbeddingVectorizer",
-            embedding_model="openai-embedding-ada-002",
-        ),
+@app.route('/generate_questions_from_document', methods=['POST'])
+def generate_questions_from_document():
+    # Get the document content
+    document_content = azure_blob.retrieve_document(
+        document_id=f"documents/{request.json['document_id']}"
     )
-    index_client.create_index(index_schema)
 
-    return jsonify({"message": "Index created successfully."})
+    # Generate questions and answers
+    questions = llm.generate_questions_and_answers(
+        document_content=document_content,
+        num_questions=request.json['num_questions'],
+        difficulty=request.json['difficulty']
+    )
 
-@app.route('/download_blob', methods=['POST'])
-def download_blob():
-    data = request.get_json()
-    container_name = data['container_name']
-    blob_name = data['blob_name']
+    return jsonify(questions)
 
-    container_client = blob_service_client.get_container_client(container_name)
-    blob_client = container_client.get_blob_client(blob_name)
-    blob_data = blob_client.download_blob().readall()
-    blob_content = blob_data.decode('utf-8')
-
-    return jsonify({"content": blob_content})
-
-
-@app.route('/get_embeddings', methods=['POST'])
-def get_embeddings():
-    data = request.get_json()
-    text = data['text']
-
-    response = openai_client.embeddings.create(model="text-embedding-ada-002", input=text)
-    embedding = response.data[0].embedding
-
-    return jsonify({"embedding": embedding})
-
-
-@app.route('/upload_document', methods=['POST'])
-def upload_document():
-    data = request.get_json()
-    documents = [
-        {
-            "id": data['id'],
-            "content": data['content'],
-            "content_vector": data['content_vector']
-        }
-    ]
-    search_client.upload_documents(documents)
-
-    return jsonify({"message": "Document uploaded successfully."})
-
-
-@app.route('/query_vector_store', methods=['POST'])
-def query_vector_store():
-    data = request.get_json()
-    query = data['query']
-    top_k = data.get('top_k', 5)
-
-    query_vector_response = requests.post(f"{FLASK_API_URL}/get_embeddings", json={"text": query})
-    query_vector = query_vector_response.json()["embedding"]
-    results = search_client.search(search_text="*", vector=query_vector, vector_fields=["content_vector"], top=top_k)
-
-    return jsonify({"results": [result["content"] for result in results]})
 
 if __name__ == '__main__':
+
+    from langchain_core.messages import HumanMessage, SystemMessage
+
+    messages = [
+        SystemMessage(content="Translate the following from English into Italian"),
+        HumanMessage(content="hi!"),
+    ]
+
+    azure_blob = AzureBlob(
+        connection_string=os.getenv("AZURE_STORAGE_CONNECTION_STRING"),
+        container_name=os.getenv("AZURE_STORAGE_CONTAINER_NAME")
+    )
+    llm = LLM(
+        azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+        openai_api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
+        temperature=float(os.getenv("AZURE_OPENAI_TEMPERATURE")),
+    )
+
+    test_content = ("Databases are structured collections of data that allow for efficient storage, retrieval, "
+                    "and manipulation of information. They are integral to modern computing and are used in a wide "
+                    "range of applications, from simple personal record-keeping to complex enterprise-level systems. "
+                    "At their core, databases are designed to manage large volumes of data in a way that ensures "
+                    "consistency, accuracy, and security. They use a structured format, typically tables, to organize "
+                    "data into rows and columns, which makes it easy to perform queries and generate reports. Each "
+                    "table represents a specific entity, such as customers, products, or transactions, and each row "
+                    "in a table represents a single record. There are various types of databases, with relational "
+                    "databases (like MySQL, PostgreSQL, and Oracle) being the most common. Relational databases use "
+                    "Structured Query Language (SQL) for defining and manipulating data. They are known for their "
+                    "robust support for complex queries, transactions, and integrity constraints. In recent years, "
+                    "non-relational (NoSQL) databases, such as MongoDB, Cassandra, and Redis, have gained popularity. "
+                    "These databases are designed to handle unstructured data and provide flexibility in terms of "
+                    "data models. They are often used in big data and real-time web applications due to their "
+                    "scalability and performance. Overall, databases are foundational to the operation of software "
+                    "applications, enabling efficient data management, high performance, and scalability.")
+
+    llm.generate_questions_and_answers(
+        document_content=test_content,
+        num_questions=5,
+        difficulty="medium"
+    )
+
     app.run(debug=True)
+
+
