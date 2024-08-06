@@ -1,6 +1,7 @@
 from azure.storage.blob import BlobServiceClient
 from docx import Document
 from io import BytesIO
+from pptx import Presentation
 from pypdf import PdfReader
 
 
@@ -29,6 +30,8 @@ class AzureBlob:
             return self.extract_text_from_docx(document_content)
         elif self.get_document_extension(document_id) == 'pdf':
             return self.extract_text_from_pdf(document_content)
+        elif self.get_document_extension(document_id) == 'pptx':
+            return self.extract_text_from_pptx(document_content)
 
 
     def get_document_extension(self, document_id):
@@ -64,4 +67,23 @@ class AzureBlob:
         full_text = []
         for page in pdf.pages:
             full_text.append(page.extract_text())
+        return '\n'.join(full_text)
+
+    def extract_text_from_pptx(self, document_bytes):
+        """
+        Extract text from a PowerPoint document
+        :param document_bytes: The document in bytes
+        :return: The extracted text in string format
+        """
+        pptx_stream = BytesIO(document_bytes)
+        ppt = Presentation(pptx_stream)
+        full_text = []
+        for slide in ppt.slides:
+            for shape in slide.shapes:
+                if not shape.has_text_frame:
+                    continue
+                for paragraph in shape.text_frame.paragraphs:
+                    for run in paragraph.runs:
+                        full_text.append(run.text)
+
         return '\n'.join(full_text)

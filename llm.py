@@ -17,8 +17,10 @@ class LLM:
             template="You are a helpful learning assistant for students. Your goal is to facilitate their learning by "
                      "testing their understanding of the content from a lecture note. Based on the provided lecture "
                      "document, generate {num_questions} questions. Ensure that these questions are of {difficulty} "
-                     "difficulty. A question should include a list of answers, and each answer has an indication "
-                     "whether it is a correct answer and a reason to justify why this answer is correct or incorrect.\n"
+                     "difficulty. A question should include a list of 4 answers, and each answer has an indication "
+                     "whether it is a correct answer and a reason to justify why this answer is correct or incorrect. "
+                     "The possible answers does not have to be solely from the content of the document. You may also "
+                     "generate other possible answers depending on the difficulty level. "
                      "{format_instructions} \n\n"
                      "Below is the content of the lecture document:\n\n{document_content}",
             input_variables=["num_questions", "difficulty", "document_content"],
