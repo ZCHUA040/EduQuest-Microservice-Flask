@@ -19,6 +19,7 @@ class LLM:
                      "document, generate {num_questions} questions. Ensure that these questions are of {difficulty} "
                      "difficulty. A question should include a list of 4 answers, and each answer has an indication "
                      "whether it is a correct answer and a reason to justify why this answer is correct or incorrect. "
+                     "This is a multi select question and there can be more than one correct answer. "
                      "The possible answers does not have to be solely from the content of the document. You may also "
                      "generate other possible answers depending on the difficulty level. "
                      "{format_instructions} \n\n"
