@@ -3,9 +3,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 from azure_blob import AzureBlob
 from dotenv import load_dotenv
+
 load_dotenv()
 from llm import LLM
-# from langchain_core.messages import HumanMessage, SystemMessage
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
@@ -20,35 +20,6 @@ llm = LLM(
     temperature=float(os.getenv("AZURE_OPENAI_TEMPERATURE")),
 )
 
-# messages = [
-#     SystemMessage(content="Translate the following from English into Italian"),
-#     HumanMessage(content="hi!"),
-# ]
-#
-# test_content = ("Databases are structured collections of data that allow for efficient storage, retrieval, "
-#                 "and manipulation of information. They are integral to modern computing and are used in a wide "
-#                 "range of applications, from simple personal record-keeping to complex enterprise-level systems. "
-#                 "At their core, databases are designed to manage large volumes of data in a way that ensures "
-#                 "consistency, accuracy, and security. They use a structured format, typically tables, to organize "
-#                 "data into rows and columns, which makes it easy to perform queries and generate reports. Each "
-#                 "table represents a specific entity, such as customers, products, or transactions, and each row "
-#                 "in a table represents a single record. There are various types of databases, with relational "
-#                 "databases (like MySQL, PostgreSQL, and Oracle) being the most common. Relational databases use "
-#                 "Structured Query Language (SQL) for defining and manipulating data. They are known for their "
-#                 "robust support for complex queries, transactions, and integrity constraints. In recent years, "
-#                 "non-relational (NoSQL) databases, such as MongoDB, Cassandra, and Redis, have gained popularity. "
-#                 "These databases are designed to handle unstructured data and provide flexibility in terms of "
-#                 "data models. They are often used in big data and real-time web applications due to their "
-#                 "scalability and performance. Overall, databases are foundational to the operation of software "
-#                 "applications, enabling efficient data management, high performance, and scalability.")
-#
-# questions = llm.generate_questions_and_answers(
-#     document_content=test_content,
-#     num_questions=5,
-#     difficulty="medium"
-# )
-#
-# print(questions)
 
 @app.route('/generate_questions_from_document', methods=['POST'])
 @cross_origin()
@@ -74,6 +45,11 @@ def generate_questions_from_document():
     return jsonify(questions)
 
 
-if __name__ == '__main__':
+@app.route('/status', methods=['GET'])
+@cross_origin()
+def status():
+    return jsonify({"status": "API is running"})
 
+
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
