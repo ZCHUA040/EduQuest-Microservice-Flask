@@ -23,14 +23,14 @@ jobs:
       uses: docker/login-action@v2
       with:
         registry: https://index.docker.io/v1/
-        username: ${{ secrets.AzureAppService_ContainerUsername_5103be03006548c3a6fb27b42395ddfc }}
-        password: ${{ secrets.AzureAppService_ContainerPassword_43baa733b7ed4928ae13d3275334285f }}
+        username: ${{ secrets.AzureAppService_ContainerUsername_5523e92eb4c24ce284c93cfb6ddf6be7 }}
+        password: ${{ secrets.AzureAppService_ContainerPassword_2f802ebcecad4dabb8083c86ed84f14d }}
 
     - name: Build and push container image to registry
       uses: docker/build-push-action@v3
       with:
         push: true
-        tags: index.docker.io/${{ secrets.AzureAppService_ContainerUsername_5103be03006548c3a6fb27b42395ddfc }}/xeroxisxs/eduquest-microservice-flask:${{ github.sha }}
+        tags: index.docker.io/${{ secrets.AzureAppService_ContainerUsername_5523e92eb4c24ce284c93cfb6ddf6be7 }}/eduquest-microservice-flask:${{ github.sha }}
         file: ./Dockerfile
 
   deploy:
@@ -47,5 +47,5 @@ jobs:
       with:
         app-name: 'eduquest-microservice'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_1667f40add954f16ac9ceb8b1957bdb7 }}
-        images: 'index.docker.io/${{ secrets.AzureAppService_ContainerUsername_5103be03006548c3a6fb27b42395ddfc }}/xeroxisxs/eduquest-microservice-flask:${{ github.sha }}'
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_14b72860ced4425e9cadc7d576dcb4b8 }}
+        images: 'index.docker.io/${{ secrets.AzureAppService_ContainerUsername_5523e92eb4c24ce284c93cfb6ddf6be7 }}/eduquest-microservice-flask:${{ github.sha }}'
