@@ -1,4 +1,7 @@
-# EduQuest-Microservice-Flask
+# EduQuest Microservice (Flask)
+
+![CI](https://github.com/xeroxis-xs/EduQuest-Microservice-Flask/actions/workflows/main_eduquest-microservice.yml/badge.svg)
+
 
 This is a microservice for the EduQuest application. The main purpose is to invoke an LLM to retrieve documents and generate questions.
 
