@@ -50,6 +50,18 @@ def generate_questions_from_document():
 def status():
     return jsonify({"status": "API is running"})
 
+@app.route('/generate_feedback', methods=['POST'])
+@cross_origin()
+def generate_feedback():
+    """
+    Generate personalized feedback for a quest attempt
+    """
+    try:
+        attempt_data = request.json
+        feedback = llm.generate_personalised_feedback(attempt_data)
+        return jsonify(feedback)
+    except Exception as e:
+        return jsonify({"error generating feedback": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
