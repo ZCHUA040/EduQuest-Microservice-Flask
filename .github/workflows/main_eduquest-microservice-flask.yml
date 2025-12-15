@@ -24,16 +24,16 @@ jobs:
       - name: Log in to container registry
         uses: docker/login-action@v2
         with:
-          registry: docker.io/
-          username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_996726EB59654C02BFD606DE5A05454C }}
-          password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD_CE34F74B7F544AEBAA324CA83415A0B2 }}
+          registry: https://index.docker.io/v1/
+          username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_6C21461A431B47C5B754976A355E31E2 }}
+          password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD_337A315C87E643D386CCA118155625F1 }}
 
       - name: Build and push container image to registry
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
-          tags: docker.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_996726EB59654C02BFD606DE5A05454C }}/eduquest-microservice-flask:${{ github.sha }}
+          tags: index.docker.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_6C21461A431B47C5B754976A355E31E2 }}/zchua040/eduquest-microservice-flask:${{ github.sha }}
           file: ./Dockerfile
 
   deploy:
@@ -49,9 +49,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_0602CE7AEB9A4ECCABBFF7ABAE6C5BC3 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_EC04FA581B2D4901B391AC00079D81B1 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0D8D576379C5431984A76FE90B9B971E }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F8247F21F0094081A0A9685E29393502 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_70195FFA043A44A990765024759F8CD1 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0B2F52239A2F49A6975F34C589273296 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -59,5 +59,5 @@ jobs:
         with:
           app-name: 'EduQuest-Microservice-Flask'
           slot-name: 'Production'
-          images: 'docker.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_996726EB59654C02BFD606DE5A05454C }}/eduquest-microservice-flask:${{ github.sha }}'
+          images: 'index.docker.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_6C21461A431B47C5B754976A355E31E2 }}/zchua040/eduquest-microservice-flask:${{ github.sha }}'
           
