@@ -1,5 +1,5 @@
 from langchain_core.pydantic_v1 import BaseModel, Field, validator
-from typing import List
+from typing import List, Dict, Any, Optional
 from langchain_core.output_parsers import JsonOutputParser
 
 
@@ -22,13 +22,22 @@ class Answer(BaseModel):
 class Question(BaseModel):
     number: int = Field(description="The question number. Starting from 1.")
     text: str = Field(description="The question text.")
+    hint: Optional[str] = Field(description="A short hint to help the student.", default=None)
+    question_type: str = Field(description="Question type: mcq, matching, categorising, latex_mcq.", default="mcq")
+    structured_data: Dict[str, Any] = Field(description="Extra data for non-mcq question types.", default_factory=dict)
     answers: List[Answer] = Field(description="The list of answers for the question.")
 
-    @validator('number', 'text', 'answers', pre=True, always=True)
+    @validator('number', 'text', 'hint', 'question_type', 'structured_data', 'answers', pre=True, always=True)
     def validate_fields(cls, v, field):
         if field.name == 'number' and not isinstance(v, int):
             raise ValueError(f"Invalid type for {field.name}: {v}")
         if field.name == 'text' and not isinstance(v, str):
+            raise ValueError(f"Invalid type for {field.name}: {v}")
+        if field.name == 'hint' and v is not None and not isinstance(v, str):
+            raise ValueError(f"Invalid type for {field.name}: {v}")
+        if field.name == 'question_type' and not isinstance(v, str):
+            raise ValueError(f"Invalid type for {field.name}: {v}")
+        if field.name == 'structured_data' and not isinstance(v, dict):
             raise ValueError(f"Invalid type for {field.name}: {v}")
         if field.name == 'answers' and not isinstance(v, list):
             raise ValueError(f"Invalid type for {field.name}: {v}")

@@ -58,7 +58,9 @@ def generate_feedback():
     """
     try:
         attempt_data = request.json
+        print("[Attempt Data]", attempt_data, flush=True)
         feedback = llm.generate_personalised_feedback(attempt_data)
+        print("[Generated Feedback]", feedback, flush=True)
         return jsonify(feedback)
     except Exception as e:
         return jsonify({"error generating feedback": str(e)}), 500
