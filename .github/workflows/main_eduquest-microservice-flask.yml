@@ -24,30 +24,40 @@ jobs:
       - name: Log in to container registry
         uses: docker/login-action@v2
         with:
-          registry: https://index.docker.io/v1/
-          username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_9E985E8E33314A8CA276868CED902002 }}
-          password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD_87FBF823598C42A093D09C26F8522972 }}
+          registry: index.docker.io/
+          username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_D6BC0C094F4A42ABAFD035D8050271BE }}
+          password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD_8B581F65ED5D4BB0820F25C5D52DFF1A }}
 
       - name: Build and push container image to registry
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
-          tags: index.docker.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_9E985E8E33314A8CA276868CED902002 }}/zchua040/eduquest-microservice-flask:${{ github.sha }}
+          tags: index.docker.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_D6BC0C094F4A42ABAFD035D8050271BE }}/zchua040/eduquest-microservice-flask:${{ github.sha }}
           file: ./Dockerfile
 
   deploy:
     runs-on: ubuntu-latest
-    
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+
     needs: build
     
     steps:
       
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_8620DF5817684A0C9170AF870A668809 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_EBE076A543D742A3A06B1D0F468EA37D }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A99C1BF7E0F149A3BD5BECB5EEEF9857 }}
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'EduQuest-Microservice-Flask'
           slot-name: 'Production'
-          images: 'index.docker.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_9E985E8E33314A8CA276868CED902002 }}/zchua040/eduquest-microservice-flask:${{ github.sha }}'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_3024875CDEA94BFAA87FA5697CF6B289 }}
+          images: 'index.docker.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_D6BC0C094F4A42ABAFD035D8050271BE }}/zchua040/eduquest-microservice-flask:${{ github.sha }}'
+          
