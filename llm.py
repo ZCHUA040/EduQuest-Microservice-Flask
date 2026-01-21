@@ -225,3 +225,62 @@ class LLM:
                 "subtopic_feedback": [],
                 "study_tips": ["Keep practicing to improve your understanding."]
             }
+
+    def generate_bonus_game(self, document_content, game_type):
+        if game_type == "matching":
+            prompt = PromptTemplate(
+                template="You are a learning assistant. Create a matching pairs mini-game based on the document.\n"
+                         "Return ONLY valid JSON, no markdown.\n\n"
+                         "FORMAT:\n"
+                         "{{\n"
+                         '  "game_type": "matching",\n'
+                         '  "prompt": "...",\n'
+                         '  "pairs": [\n'
+                         '    {{"left": "...", "right": "..."}},\n'
+                         '    {{"left": "...", "right": "..."}},\n'
+                         '    {{"left": "...", "right": "..."}},\n'
+                         '    {{"left": "...", "right": "..."}}\n'
+                         '  ],\n'
+                         '  "hint": "..."\n'
+                         "}}\n\n"
+                         "RULES:\n"
+                         "- Generate 4 pairs.\n"
+                         "- Keep text concise (<= 8 words each).\n"
+                         "- Pairs must be clearly matched from the document.\n"
+                         "- Avoid obscure or minor details.\n\n"
+                         "DOCUMENT:\n{document_content}",
+                input_variables=["document_content"]
+            )
+        else:
+            prompt = PromptTemplate(
+                template="You are a learning assistant. Create an ordering sequence mini-game based on the document.\n"
+                         "Return ONLY valid JSON, no markdown.\n\n"
+                         "FORMAT:\n"
+                         "{{\n"
+                         '  "game_type": "ordering",\n'
+                         '  "prompt": "...",\n'
+                         '  "items": ["...", "...", "...", "..."],\n'
+                         '  "answer_order": [0, 1, 2, 3],\n'
+                         '  "hint": "..."\n'
+                         "}}\n\n"
+                         "RULES:\n"
+                         "- Generate 4 items in correct order in the items list.\n"
+                         "- answer_order must be the correct index order (0..3).\n"
+                         "- Use a process or sequence from the document.\n"
+                         "- Keep items concise (<= 8 words each).\n\n"
+                         "DOCUMENT:\n{document_content}",
+                input_variables=["document_content"]
+            )
+
+        chain = prompt | self.model
+        result = chain.invoke({
+            "document_content": document_content
+        })
+
+        content = result.content.strip()
+        if content.startswith('```json'):
+            content = content.replace('```json', '').replace('```', '').strip()
+        elif content.startswith('```'):
+            content = content.replace('```', '').strip()
+
+        return json.loads(content)
