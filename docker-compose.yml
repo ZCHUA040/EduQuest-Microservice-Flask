@@ -1,7 +1,7 @@
 services:
   microservice:
     build: .
-    image: zchua040/eduquest-microservice-flask:latest
+    image: rinroxy/eduquest-microservice-flask:latest
     ports:
       - "5000:5000"
     env_file:

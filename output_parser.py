@@ -18,16 +18,27 @@ class Answer(BaseModel):
             raise ValueError(f"Invalid type for {field.name}: {v}")
         return v
 
+class UnstructuredAnswer(BaseModel):
+    text: str = Field(description="Leave this as an empty text field.")
+    reason: str = Field(description="The reason why the answer is correct or incorrect.")
+
+    @validator('text', 'reason', pre=True, always=True)
+    def validate_fields(cls, v, field):
+        if field.name == 'text' and not isinstance(v, str):
+            raise ValueError(f"Invalid type for {field.name}: {v}")
+        if field.name == 'reason' and not isinstance(v, str):
+            raise ValueError(f"Invalid type for {field.name}: {v}")
 
 class Question(BaseModel):
     number: int = Field(description="The question number. Starting from 1.")
     text: str = Field(description="The question text.")
     hint: Optional[str] = Field(description="A short hint to help the student.", default=None)
-    question_type: str = Field(description="Question type: mcq, matching, categorising, latex_mcq.", default="mcq")
+    question_type: str = Field(description="Question type: mcq, matching, categorising, latex_mcq, short_ans, latex_short_ans.", default="mcq")
     structured_data: Dict[str, Any] = Field(description="Extra data for non-mcq question types.", default_factory=dict)
-    answers: List[Answer] = Field(description="The list of answers for the question.")
+    answers: List[Answer] = Field(description="The list of answers for the question if it is an MCQ question.")
+    unstructuredanswer: UnstructuredAnswer = Field(description="The open-ended answer for the question if it is not an MCQ question")
 
-    @validator('number', 'text', 'hint', 'question_type', 'structured_data', 'answers', pre=True, always=True)
+    @validator('number', 'text', 'hint', 'question_type', 'structured_data', 'answers', 'unstructuredanswer', pre=True, always=True)
     def validate_fields(cls, v, field):
         if field.name == 'number' and not isinstance(v, int):
             raise ValueError(f"Invalid type for {field.name}: {v}")
@@ -40,6 +51,8 @@ class Question(BaseModel):
         if field.name == 'structured_data' and not isinstance(v, dict):
             raise ValueError(f"Invalid type for {field.name}: {v}")
         if field.name == 'answers' and not isinstance(v, list):
+            raise ValueError(f"Invalid type for {field.name}: {v}")
+        if field.name == 'unstructuredanswer' and not isinstance(v, UnstructuredAnswer):
             raise ValueError(f"Invalid type for {field.name}: {v}")
         return v
 

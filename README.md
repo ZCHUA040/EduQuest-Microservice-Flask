@@ -46,6 +46,7 @@ AZURE_OPENAI_DEPLOYMENT_NAME=yopur_azure_openai_deployment_name
 AZURE_OPENAI_TEMPERATURE=your_azure_openai_temperature
 AZURE_STORAGE_CONNECTION_STRING=your_azure_storage_account_connection_string
 AZURE_STORAGE_CONTAINER_NAME=your_azure_storage_account_container_name
+WOLFRAM_ALPHA_APP_ID=your_wolfram_alpha_app_id
 ```
 
 ## Running the Application
